@@ -1,0 +1,513 @@
+{
+ "scene": {
+  "version": 0,
+  "objects": [
+   {
+    "id": "c1",
+    "number": 1,
+    "kind": "card",
+    "label": "Lisbon tiles",
+    "colour": "blue",
+    "size": "medium",
+    "x": 0.15,
+    "y": 0.24
+   },
+   {
+    "id": "c2",
+    "number": 2,
+    "kind": "card",
+    "label": "Fig tree",
+    "colour": "green",
+    "size": "medium",
+    "x": 0.33,
+    "y": 0.25
+   },
+   {
+    "id": "c3",
+    "number": 3,
+    "kind": "card",
+    "label": "Sea swim",
+    "colour": "blue",
+    "size": "medium",
+    "x": 0.5,
+    "y": 0.24
+   },
+   {
+    "id": "c4",
+    "number": 4,
+    "kind": "card",
+    "label": "Night market",
+    "colour": "red",
+    "size": "medium",
+    "x": 0.68,
+    "y": 0.26
+   },
+   {
+    "id": "c5",
+    "number": 5,
+    "kind": "card",
+    "label": "Olive oil tasting",
+    "colour": "green",
+    "size": "medium",
+    "x": 0.83,
+    "y": 0.25
+   },
+   {
+    "id": "c6",
+    "number": 6,
+    "kind": "card",
+    "label": "Sunset terrace",
+    "colour": "orange",
+    "size": "medium",
+    "x": 0.16,
+    "y": 0.48
+   },
+   {
+    "id": "c7",
+    "number": 7,
+    "kind": "card",
+    "label": "Vinyl night",
+    "colour": "purple",
+    "size": "medium",
+    "x": 0.34,
+    "y": 0.47
+   },
+   {
+    "id": "c8",
+    "number": 8,
+    "kind": "card",
+    "label": "Long table dinner",
+    "colour": "yellow",
+    "size": "medium",
+    "x": 0.49,
+    "y": 0.45
+   },
+   {
+    "id": "c9",
+    "number": 9,
+    "kind": "card",
+    "label": "Bike ride",
+    "colour": "grey",
+    "size": "medium",
+    "x": 0.66,
+    "y": 0.47
+   },
+   {
+    "id": "c10",
+    "number": 10,
+    "kind": "card",
+    "label": "Pottery class",
+    "colour": "orange",
+    "size": "medium",
+    "x": 0.84,
+    "y": 0.46
+   },
+   {
+    "id": "c11",
+    "number": 11,
+    "kind": "card",
+    "label": "Lemon grove",
+    "colour": "yellow",
+    "size": "medium",
+    "x": 0.18,
+    "y": 0.69
+   },
+   {
+    "id": "c12",
+    "number": 12,
+    "kind": "card",
+    "label": "Stargazing",
+    "colour": "purple",
+    "size": "medium",
+    "x": 0.32,
+    "y": 0.68
+   }
+  ],
+  "groups": [],
+  "selection": []
+ },
+ "actions": [
+  {
+   "name": "moveItems",
+   "description": "Move objects together to a region of the board.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     },
+     "to": {
+      "type": "string",
+      "enum": [
+       "left",
+       "right",
+       "top",
+       "bottom",
+       "center",
+       "top-left",
+       "top-right",
+       "bottom-left",
+       "bottom-right"
+      ]
+     }
+    },
+    "required": [
+     "ids",
+     "to"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "groupItems",
+   "description": "Put objects next to each other as a labelled group. Replaces any group they were in.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     },
+     "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "description": "Short group name, e.g. \"Food\""
+     },
+     "at": {
+      "description": "Where to put the group; defaults to where the items already are",
+      "type": "string",
+      "enum": [
+       "left",
+       "right",
+       "top",
+       "bottom",
+       "center",
+       "top-left",
+       "top-right",
+       "bottom-left",
+       "bottom-right"
+      ]
+     }
+    },
+    "required": [
+     "ids",
+     "label"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "ungroup",
+   "description": "Dissolve a group; its objects stay where they are.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "group": {
+      "type": "string",
+      "description": "Group id"
+     }
+    },
+    "required": [
+     "group"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "removeFromGroup",
+   "description": "Take objects out of their group and move them back out beside it.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     }
+    },
+    "required": [
+     "ids"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "setColour",
+   "description": "Change the colour of objects.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     },
+     "colour": {
+      "type": "string",
+      "enum": [
+       "blue",
+       "green",
+       "yellow",
+       "orange",
+       "red",
+       "pink",
+       "purple",
+       "grey"
+      ]
+     }
+    },
+    "required": [
+     "ids",
+     "colour"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "resize",
+   "description": "Make objects small, medium or large.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     },
+     "size": {
+      "type": "string",
+      "enum": [
+       "small",
+       "medium",
+       "large"
+      ]
+     }
+    },
+    "required": [
+     "ids",
+     "size"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "star",
+   "description": "Mark objects as favourites with a star, or remove the star.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     },
+     "starred": {
+      "type": "boolean",
+      "description": "true to add the star, false to remove it"
+     }
+    },
+    "required": [
+     "ids",
+     "starred"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "addNote",
+   "description": "Add a sticky note with text.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+     },
+     "colour": {
+      "type": "string",
+      "enum": [
+       "blue",
+       "green",
+       "yellow",
+       "orange",
+       "red",
+       "pink",
+       "purple",
+       "grey"
+      ]
+     },
+     "near": {
+      "description": "Object id to put the note next to",
+      "type": "string"
+     },
+     "at": {
+      "type": "string",
+      "enum": [
+       "left",
+       "right",
+       "top",
+       "bottom",
+       "center",
+       "top-left",
+       "top-right",
+       "bottom-left",
+       "bottom-right"
+      ]
+     }
+    },
+    "required": [
+     "text"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "editLabel",
+   "description": "Change the text on an object.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+     }
+    },
+    "required": [
+     "id",
+     "label"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "arrange",
+   "description": "Lay out every object on the board in a grid, a row or a circle, optionally sorted.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "layout": {
+      "type": "string",
+      "enum": [
+       "grid",
+       "row",
+       "circle"
+      ]
+     },
+     "sortBy": {
+      "type": "string",
+      "enum": [
+       "colour",
+       "label",
+       "group",
+       "size",
+       "starred"
+      ]
+     }
+    },
+    "required": [
+     "layout"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "focus",
+   "description": "Spotlight some objects and dim the rest. Pass an empty list to clear the spotlight.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "ids"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "deleteItems",
+   "description": "Remove objects from the board.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Object ids from the board"
+     }
+    },
+    "required": [
+     "ids"
+    ],
+    "additionalProperties": false
+   },
+   "risk": "high"
+  },
+  {
+   "name": "undo",
+   "description": "Undo the last change.",
+   "input_schema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   },
+   "risk": "low"
+  },
+  {
+   "name": "redo",
+   "description": "Redo the last undone change.",
+   "input_schema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   },
+   "risk": "low"
+  }
+ ]
+}

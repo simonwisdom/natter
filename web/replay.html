@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Body Lab replay</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏪</text></svg>" />
+  </head>
+  <body>
+    <header>
+      <h1>Replay</h1>
+      <select id="session" aria-label="Session"></select>
+      <div id="show" role="group" aria-label="What to list">
+        <button type="button" data-show="moments" aria-pressed="true">Moments</button>
+        <button type="button" data-show="all" aria-pressed="false">Everything</button>
+      </div>
+      <span id="counts"></span>
+      <span id="keys"><kbd>Space</kbd> play · <kbd>↑</kbd><kbd>↓</kbd> step · <kbd>←</kbd><kbd>→</kbd> 5 s · <kbd>F</kbd> next failure · <kbd>+</kbd><kbd>−</kbd> text size</span>
+    </header>
+    <main>
+      <section id="left">
+        <div id="screen">
+          <video id="video" playsinline preload="auto"></video>
+          <div id="novideo" hidden></div>
+          <div id="caption"></div>
+        </div>
+        <div id="controls">
+          <button id="play" type="button" aria-label="Play">▶</button>
+          <span id="time">0:00</span>
+          <button id="speed" type="button" title="Playback speed">1×</button>
+          <button id="view" type="button" hidden title="Switch between the screen as it looked and the camera picture (C)"></button>
+          <button id="mirror" type="button" aria-pressed="true" title="Show the picture as a mirror, as the Lab does">Mirror</button>
+          <span id="sync" title="If words and picture are out of step: , and . move the log 0.1 s"></span>
+        </div>
+        <pre id="detail"></pre>
+      </section>
+      <ol id="rows"></ol>
+    </main>
+    <footer>
+      <div id="timeline"><div id="spans"></div><div id="marks"></div><div id="head"></div></div>
+      <div id="legend"><i class="heard"></i>heard <i class="claude"></i>Claude <i class="did"></i>done <i class="fail"></i>went wrong <i class="mark"></i>marked good</div>
+    </footer>
+    <script type="module" src="/src/replay/main.ts"></script>
+  </body>
+</html>

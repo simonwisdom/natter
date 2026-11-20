@@ -1,0 +1,237 @@
+/* Body Lab: sized to be read from the back of a room on a TV. */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  background: radial-gradient(120% 90% at 50% 40%, #2b2440 0%, #17131f 70%);
+  color: #fff4dc;
+  font-family: 'Fraunces', Georgia, serif;
+  transition: background-color 0.4s;
+}
+body.workbench { background: radial-gradient(120% 90% at 50% 40%, #3a2a1c 0%, #1a1410 70%); }
+
+#video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* The camera picture behind the board (M): stretched to the board like the hands drawn from it, and dim so the bubbles still read. */
+body.camera #video { inset: 0; width: 100%; height: 100%; object-fit: fill; opacity: 0.4; }
+#overlay { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 500; pointer-events: none; }
+#under { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#bubbles { position: absolute; inset: 0; transition: opacity 0.2s; }
+/* Zoomed out to the overview: the canvas draws every area small, and the full-size bubbles step aside. */
+body.overview #bubbles { opacity: 0; pointer-events: none; }
+body.overview #rail { opacity: 0; pointer-events: none; }
+
+/* A bubble is --d across at scale 1 (set from R in play.ts). Inside it, 1em is 1/22 of that. */
+.bubble {
+  position: absolute; left: 0; top: 0;
+  width: var(--d, 17vh); height: var(--d, 17vh);
+  font-size: calc(var(--d, 17vh) / 22);
+  border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4em;
+  padding: 2.2em;
+  text-align: center;
+  color: #1c1626;
+  background: #a6e58a;
+  box-shadow: 0 1em 3em rgba(0, 0, 0, 0.45);
+  transition: opacity 0.3s, box-shadow 0.15s, background-color 0.4s;
+  will-change: transform;
+}
+.bubble[data-colour='blue'] { background: #8ec5ff; }
+.bubble[data-colour='orange'] { background: #ffb870; }
+.bubble[data-colour='purple'] { background: #cfa8ff; }
+.bubble[data-colour='pink'] { background: #ff9ec4; }
+.bubble[data-colour='teal'] { background: #7fe0d0; }
+.bubble .emoji { font-size: 5em; line-height: 1; }
+.bubble .label { font-size: 2.9em; font-weight: 600; line-height: 1.08; overflow-wrap: anywhere; }
+.bubble .star { position: absolute; top: -0.25em; right: -0.06em; font-size: 8em; color: #ffd23f; text-shadow: 0 0.05em 0.12em rgba(0, 0, 0, 0.5); opacity: 0; transform: scale(0.2) rotate(-40deg); transition: all 0.35s cubic-bezier(0.3, 1.8, 0.5, 1); }
+.bubble.starred .star { opacity: 1; transform: none; }
+/* Claude's own ideas: a dashed rim and a spark. */
+.bubble .spark { display: none; position: absolute; top: 0.1em; left: 0.3em; font-size: 4em; }
+.bubble.claude { outline: 0.5em dashed #fff4dc; outline-offset: -0.5em; }
+.bubble.claude .spark { display: block; }
+/* A bubble with more behind its label shows a small mark, and opens when stretched large. */
+.bubble .full { display: none; font-size: 1.45em; line-height: 1.15; font-weight: 400; }
+.bubble.more:not(.open)::after { content: '···'; position: absolute; bottom: 0.6em; font-size: 2.4em; line-height: 1; opacity: 0.55; }
+.bubble.open .emoji { display: none; }
+.bubble.open .label { font-size: 1.5em; opacity: 0.7; }
+.bubble.open .full { display: block; }
+.bubble .how {
+  position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -0.36em);
+  white-space: nowrap; padding: 0.2em 0.6em; border-radius: 1.1em;
+  background: #fff4dc; color: #1c1626; font-size: 2.8em; font-weight: 600;
+  opacity: 0; transition: opacity 0.15s;
+}
+.bubble.hinting .how { opacity: 1; }
+.bubble.held { box-shadow: 0 0 0 0.6em #fff4dc, 0 3em 6em rgba(0, 0, 0, 0.6); }
+/* A hub (a bubble with several connections): a small badge on its lower rim says a victory sign here asks about all of them. */
+.bubble .hub {
+  display: none; position: absolute; top: 100%; left: 50%; transform: translate(-50%, -55%);
+  white-space: nowrap; padding: 0.15em 0.55em; border-radius: 1em;
+  background: #1c1626; color: #fff4dc; border: 0.12em solid #ffd23f; font-size: 2.8em; font-weight: 600;
+}
+.bubble.is-hub .hub { display: block; }
+.bubble.feeding { box-shadow: 0 0 0 0.7em #ffd23f, 0 0 5em rgba(255, 210, 63, 0.6); }
+.bubble.source { box-shadow: 0 0 0 0.8em #fff4dc, 0 0 5em rgba(255, 244, 220, 0.5); }
+.bubble.target { box-shadow: 0 0 0 1em #ffd23f, 0 0 6em rgba(255, 210, 63, 0.7); }
+.bubble.leaving { opacity: 0.6; }
+/* Burning up: it glows, chars and fades as it shrinks (the flames are drawn on the overlay). */
+body .bubble.burning { opacity: 1; animation: burn 0.9s ease-in forwards; box-shadow: 0 0 6em 2em #ff6a3daa; }
+@keyframes burn {
+  0% { filter: brightness(1.5) saturate(1.6); }
+  35% { filter: brightness(1.1) sepia(0.9) saturate(2.4) hue-rotate(-15deg); opacity: 1; }
+  100% { filter: brightness(0.15) grayscale(0.8); opacity: 0; }
+}
+.bubble.pending { animation: think 0.9s ease-in-out infinite alternate; }
+.bubble.born { animation: pop 0.4s cubic-bezier(0.3, 1.8, 0.5, 1); }
+.bubble.born.pending { animation: pop 0.4s cubic-bezier(0.3, 1.8, 0.5, 1), think 0.9s 0.4s ease-in-out infinite alternate; }
+@keyframes pop { from { opacity: 0; filter: brightness(3); } }
+@keyframes think { from { filter: brightness(1); } to { filter: brightness(1.35) saturate(0.6); } }
+
+#modes {
+  position: absolute; left: 2vw; top: 2.5vh; z-index: 600;
+  display: flex; gap: 1.2vw; font-size: 3vh;
+}
+#modes span { padding: 0.6vh 1.6vh; border-radius: 3vh; background: rgba(0, 0, 0, 0.35); opacity: 0.55; }
+#modes span.on { background: #fff4dc; color: #1c1626; opacity: 1; font-weight: 600; }
+#modes span.listening { background: #ffd23f; font-size: 3.6vh; max-width: 48vw; }
+#modes kbd { font: 2.2vh ui-monospace, Menlo, monospace; margin-right: 0.8vh; opacity: 0.6; }
+
+/* The side rail: buttons a pointing finger presses by resting on them (they fill as it rests), or the mouse by clicking. */
+#rail {
+  position: absolute; right: 2vw; top: 50%; transform: translateY(-50%); z-index: 650;
+  display: flex; flex-direction: column; gap: 2.5vh;
+}
+#rail button {
+  --press: 0;
+  font: 600 clamp(16px, 3vh, 26px) 'Fraunces', Georgia, serif;
+  color: inherit; border: 1px solid #fff4dc80;
+  background: linear-gradient(to right, #fff4dc55 calc(var(--press) * 100%), #211b30 calc(var(--press) * 100%));
+  padding: 0 2vh; border-radius: 3vh; cursor: pointer;
+  min-height: max(44px, 9vh); min-width: 11vw; white-space: nowrap;
+}
+#rail button[aria-pressed='true'] { background: #fff4dc; color: #1c1626; }
+#rail #delete-mode[aria-pressed='true'] { background: #ff6a3d; color: #1c1626; border-color: #ff6a3d; }
+#rail button:focus-visible { outline: 3px solid #fff4dc; outline-offset: 4px; }
+body.deleting #hint { opacity: 1; }
+#zone-name {
+  position: absolute; z-index: 700; box-sizing: border-box; height: 7vh; text-align: center;
+  font: 600 clamp(16px, 4vh, 34px) 'Fraunces', Georgia, serif;
+  color: #1c1626; background: #fff4dc; border: 0; border-radius: 3vh; outline: 3px solid #ffd23f;
+}
+body.deleting .bubble { box-shadow: 0 0 0 0.4vh #ff6a3d66; }
+body.drawing-zones .bubble { opacity: 0.22; }
+body.drawing-zones #hint { opacity: 1; }
+body.drawing-zones #readout { display: none; }
+@media (max-width: 600px) {
+  #modes { gap: 4px; font-size: 14px; max-width: 55vw; flex-wrap: wrap; }
+  #modes kbd { font-size: 11px; }
+  #hint { font-size: 15px; }
+}
+
+/* The gesture guide: small and along the bottom edge, clear of the Inputs button on the right. */
+#hint {
+  position: absolute; left: 0; right: 0; bottom: 1.6vh; z-index: 600;
+  text-align: center; font-size: clamp(12px, 1.9vh, 20px); line-height: 1.5; opacity: 0.6; white-space: pre-wrap; padding: 0 12vw;
+}
+body.deleting #hint, body.drawing-zones #hint { font-size: clamp(14px, 2.6vh, 28px); }
+
+/* The keyboard shortcuts (?): a small card, and a reminder in the corner that it is there. */
+#keys-tip {
+  position: absolute; right: 16px; bottom: 1.6vh; z-index: 600; pointer-events: none;
+  font: clamp(11px, 1.6vh, 16px) ui-monospace, Menlo, monospace; opacity: 0.55;
+}
+#keys-tip kbd, #keys dt { font: inherit; padding: 0.1em 0.5em; border: 1px solid #fff4dc66; border-radius: 0.4em; white-space: pre; }
+body.stage #keys-tip { display: none; }
+#keys {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 800;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2vh 3vw; max-width: 92vw; max-height: 90vh; overflow: auto;
+  padding: 2.5vh 2.5vw; border-radius: 1.2vw; background: rgba(20, 16, 28, 0.94); border: 1px solid #fff4dc40;
+  font: clamp(12px, 1.8vh, 18px)/1.4 ui-monospace, Menlo, monospace; color: #fff4dc;
+}
+#keys[hidden] { display: none; }
+#keys h3 { margin: 0 0 1vh; font: 600 clamp(13px, 2vh, 20px) 'Fraunces', Georgia, serif; color: #ffd23f; }
+#keys dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.7vh 1vw; align-items: baseline; }
+#keys dt { justify-self: start; }
+#keys dd { margin: 0; opacity: 0.85; }
+
+/* The readouts: in the top right corner, above the side rail and off the board. */
+#readout {
+  position: absolute; right: 1.5vw; top: 2vh; z-index: 600;
+  margin: 0; padding: 0.8vh 0.9vw; border-radius: 0.8vw; max-width: 46vw;
+  background: rgba(0, 0, 0, 0.5); white-space: pre-wrap; pointer-events: none;
+  font: clamp(10px, 1.5vh, 16px)/1.5 ui-monospace, Menlo, monospace; color: #cfe;
+}
+
+/* The log panel (L): the last few things heard and done, newest at the bottom, older lines fading. */
+#feed {
+  position: absolute; left: 1.2vw; bottom: 9vh; z-index: 640; pointer-events: none;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.5vh; max-width: 44vw;
+  font: clamp(12px, 2vh, 22px)/1.35 ui-monospace, Menlo, monospace; color: #fff4dc;
+}
+#feed[hidden] { display: none; }
+body.stage #feed { bottom: 5vh; }
+body.drawing-zones #feed { display: none; }
+#feed div { padding: 0.4vh 0.8vw; border-radius: 0.6vw; background: rgba(0, 0, 0, 0.72); opacity: 0.6; }
+#feed div:nth-last-child(-n + 4) { opacity: 0.8; }
+#feed div:nth-last-child(-n + 2) { opacity: 0.9; }
+#feed div:last-child { opacity: 1; }
+#feed time { margin-right: 1ch; color: #ffd23f; }
+#feed time:empty { display: none; }
+
+/* Stage mode (P, or ?stage): for an audience. The test-bench text goes, and one large band says what was understood. */
+#stage, #health { display: none; }
+body.stage #readout, body.stage #hint, body.stage .input-devices,
+body.stage #modes span:not(.on), body.stage #modes span.listening, body.stage #modes kbd { display: none; }
+body.stage #stage {
+  display: flex; align-items: baseline; gap: 1.6vw;
+  position: absolute; left: 50%; top: 3vh; transform: translateX(-50%); z-index: 690;
+  /* Long words wrap onto more lines rather than being cut off. */
+  flex-wrap: wrap; justify-content: center; column-gap: 1.6vw; row-gap: 0.4vh; text-align: center;
+  width: max-content; max-width: 88vw; padding: 1.4vh 3vw; border-radius: 4vh;
+  background: #fff4dc; color: #1c1626; font-size: 5.4vh; font-weight: 600;
+  box-shadow: 0 1vh 4vh rgba(0, 0, 0, 0.5);
+  opacity: 0; transition: opacity 0.25s, background-color 0.25s; pointer-events: none;
+}
+body.stage #stage.show { opacity: 1; }
+body.stage #stage.thinking { background: #ffd23f; animation: think 0.9s ease-in-out infinite alternate; }
+#stage .heard { font-weight: 400; font-style: italic; padding-right: 0.3em; }
+/* A long spoken request steps down in size so it all fits in a few lines. */
+#stage.long .heard { font-size: 0.72em; }
+#stage.longer .heard { font-size: 0.55em; }
+#stage .heard:empty { display: none; }
+/* For the presenter only: small, in a corner the audience won't read. */
+body.stage #health {
+  display: flex; align-items: center; gap: 0.8vh;
+  position: absolute; left: 1.2vw; bottom: 1.5vh; z-index: 600;
+  font: 1.7vh ui-monospace, Menlo, monospace; opacity: 0.6;
+}
+#health i { width: 1.4vh; height: 1.4vh; border-radius: 50%; background: #6fdc8c; }
+#health.bad { opacity: 1; }
+#health.bad i { background: #ffb347; }
+
+/* Which microphone is hearing what: speak into one and its bar moves. Always in view, so two can be told apart. */
+#mics {
+  position: absolute; left: 1.5vw; top: 10vh; z-index: 600;
+  display: grid; gap: 0.5vh; font: 1.7vh ui-monospace, Menlo, monospace; opacity: 0.8; pointer-events: none;
+}
+body.stage #mics { opacity: 0.6; }
+body.drawing-zones #mics { display: none; }
+#mics div { display: flex; align-items: center; gap: 0.8vw; white-space: nowrap; }
+#mics b { font-weight: 600; min-width: 13ch; }
+#mics .bar { width: 9vw; height: 1.1vh; border-radius: 1vh; background: rgba(255, 255, 255, 0.16); overflow: hidden; }
+#mics .bar i { display: block; height: 100%; width: 0; background: #6fdc8c; }
+#mics .name { opacity: 0.7; max-width: 26vw; overflow: hidden; text-overflow: ellipsis; }
+#mics .off { opacity: 0.5; }
+/* A second microphone that isn't in use takes no line. */
+#mics div.off:nth-child(2) { display: none; }
+#mics .live b { color: #ffd23f; }
+#mics .bad .name { color: #ffb347; opacity: 1; }
+
+/* Short messages ("Didn’t catch that"): near the top, never over the middle where the presenter's face is. In stage mode the band says them instead. */
+#msg {
+  position: absolute; left: 50%; top: 11vh; z-index: 700;
+  transform: translateX(-50%);
+  padding: 1.4vh 2vw; border-radius: 1.2vw;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 3.2vh; text-align: center; max-width: 60vw;
+  opacity: 0; transition: opacity 0.4s; pointer-events: none;
+}
+#msg.show { opacity: 1; }

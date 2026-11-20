@@ -1,0 +1,17 @@
+.env
+traces/
+.DS_Store
+.venv/
+__pycache__/
+.pytest_cache/
+.claude/worktrees/
+lab-recordings/
+web/public/replay/
+
+# Session logs, recordings and notes stay on your machine
+lab-sessions/
+lab-recordings/
+recordings/
+research/
+DEMO_REVIEW.md
+IMPLEMENTATION_PLAN.md

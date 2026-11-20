@@ -1,0 +1,35 @@
+[project]
+name = "natter-server"
+version = "0.1.0"
+license = "MIT"
+description = "Speech-to-text and intent resolver for Natter"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=1.11.0",
+    "claude-agent-sdk>=0.2.163",
+    "fastapi>=0.142.2",
+    "httpx>=0.28.1",
+    "jsonschema>=4.26.0",
+    "numpy>=2.5.3",
+    "parakeet-mlx>=0.5.3",
+    "python-dotenv>=1.2.4",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+natter-server = "natter_server.app:main"
+natter-transcript = "natter_server.transcript:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[build-system]
+requires = ["uv_build>=0.9.10,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]

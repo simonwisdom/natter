@@ -1,0 +1,23 @@
+[
+  {"say": "make the lemon grove bigger", "expect": {"call": "resize", "ids": ["c11"], "input": {"size": "large"}}},
+  {"say": "group the blue ones and call them water", "expect": {"call": "groupItems", "ids": ["c1", "c3"]}},
+  {"say": "star number six", "expect": {"call": "star", "ids": ["c6"], "input": {"starred": true}}},
+  {"say": "put the night market and the vinyl night over on the left", "expect": {"call": "moveItems", "ids": ["c4", "c7"], "input": {"to": "left"}}},
+  {"say": "add a note saying book the train", "expect": {"call": "addNote"}},
+  {"say": "turn the bike ride green", "expect": {"call": "setColour", "ids": ["c9"], "input": {"colour": "green"}}},
+  {"say": "arrange everything by colour", "expect": {"call": "arrange", "input": {"sortBy": "colour"}}},
+  {"say": "lay them all out in a circle", "expect": {"call": "arrange", "input": {"layout": "circle"}}},
+  {"say": "delete the stargazing card", "expect": {"call": "deleteItems", "ids": ["c12"]}},
+  {"say": "rename number two to fig orchard", "expect": {"call": "editLabel", "ids": ["c2"]}},
+  {"say": "move the orange ones to the right", "expect": {"call": "moveItems", "ids": ["c6", "c10"], "input": {"to": "right"}}},
+  {"say": "make four and five purple", "expect": {"call": "setColour", "ids": ["c4", "c5"], "input": {"colour": "purple"}}},
+  {"say": "take the star off the sunset terrace", "expect": {"call": "star", "ids": ["c6"], "input": {"starred": false}}},
+  {"say": "move the fig tree to the top left", "expect": {"call": "moveItems", "ids": ["c2"], "input": {"to": "top-left"}}},
+  {"say": "spotlight the sea swim", "expect": {"call": "focus", "ids": ["c3"]}},
+  {"say": "make the lemon groove smaller", "expect": {"call": "resize", "ids": ["c11"], "input": {"size": "small"}}, "note": "mis-transcription of grove"},
+  {"say": "undo", "expect": {"call": "undo"}},
+  {"say": "I think we should go in May, what do you reckon", "expect": {"kind": "none", "reason": "not_a_command"}},
+  {"say": "play some jazz", "expect": {"kind": "none", "reason": "no_matching_action"}},
+  {"say": "and make it red", "previous": {"utterance": "make the lemon grove bigger", "result": {"kind": "actions", "calls": [{"name": "resize", "input": {"ids": ["c11"], "size": "large"}}]}}, "expect": {"call": "setColour", "ids": ["c11"], "input": {"colour": "red"}}},
+  {"say": "no, the other blue one", "previous": {"utterance": "star the blue one", "result": {"kind": "actions", "calls": [{"name": "star", "input": {"ids": ["c1"], "starred": true}}]}}, "expect": {"call": "star", "ids": ["c3"]}}
+]

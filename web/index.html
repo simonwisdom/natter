@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Natter</title>
+    <link rel="icon" href="/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Caveat:wght@600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="board" class="board">
+      <div id="cards"></div>
+      <div id="groups"></div>
+      <div id="toast" class="toast"></div>
+      <div id="confirm" class="confirm"></div>
+      <!-- On a big screen the HUD floats over the board; on a phone it becomes a panel beside or below it. -->
+      <div class="hud">
+        <header class="topbar">
+          <div>
+            <h1>Weekend away</h1>
+            <div id="health" class="health"></div>
+          </div>
+          <div id="status" class="pill"><span class="dot"></span><span class="txt">Starting…</span></div>
+        </header>
+        <div id="queue" class="queue"></div>
+        <div class="caption">
+          <span id="who" class="who">Room</span><span id="ctext" class="ctext idle"></span>
+          <form id="textform" class="textform"><input id="text" placeholder="Type a command  ( / )" autocomplete="off" /></form>
+        </div>
+        <div class="controls">
+          <button id="talk" class="talk" type="button">Hold to talk</button>
+          <div class="pip">
+            <video id="video" playsinline muted></video>
+            <canvas id="pip" width="320" height="180"></canvas>
+            <span id="piplbl" class="lbl">camera off</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="start" class="start">
+      <div class="start-card">
+        <h2>Natter</h2>
+        <p>Talk about the board together. When you want to change it, <b>raise a hand above your head</b>, say what you want, and lower your hand.</p>
+        <p class="small">The camera only tracks body poses on this machine and is never recorded. Speech is transcribed locally; the words and a description of the board go to Claude.</p>
+        <button id="startbtn">Start camera and microphone</button>
+        <p class="small keys">No camera? Hold <kbd>Space</kbd> to talk, or press <kbd>/</kbd> to type.</p>
+        <p class="small touch">Prop the phone up so the front camera sees you, or press and hold the <b>Hold to talk</b> button.</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
