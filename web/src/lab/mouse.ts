@@ -6,7 +6,7 @@
  *   drag a bubble                      fist: move, drop, merge, fling
  *   press and hold on empty space      fist: a new idea (say it), let go to place it
  *   right-drag (or Shift-drag)         point: pull a branch out of a bubble, or connect two
- *   Alt-press (or middle button)       victory: ask Claude for two more ideas
+ *   Alt-press (or middle button)       victory: ask the LLM for two more ideas
  *   T / Backspace over a bubble        thumbs up / down: star / bin
  *   In Draw zones, drag draws, resizes and moves zones; press and hold a title to say its name.
  *   In delete mode, press and hold a bubble to bin it.

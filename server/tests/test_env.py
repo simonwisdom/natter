@@ -13,3 +13,13 @@ def test_key_added_to_env_file_is_picked_up_without_restart(tmp_path, monkeypatc
     assert app.status()["llm"] == "ready"
     assert app.resolver._client is None
     monkeypatch.delenv("ANTHROPIC_API_KEY")
+
+
+def test_status_says_local_model_in_local_only_mode(monkeypatch):
+    from natter_server import ollama
+
+    monkeypatch.setenv("NATTER_LLM", "local")
+    monkeypatch.setattr(ollama, "fallback", ollama.Fallback())
+    assert app.status()["llm"] == "ollama"
+    ollama.fallback.local_ready = False
+    assert app.status()["llm"] == "ollama_failed"

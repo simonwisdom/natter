@@ -4,21 +4,21 @@
 
 Brainstorm with your hands and your voice. People stand in front of a screen of idea bubbles; the camera reads their hands and body, and what they say becomes ideas on the board.
 
-![Natter: idea bubbles joined round a hub, with a victory sign asking Claude about all four](docs/screenshot.png)
+![Natter: idea bubbles joined round a hub, with a victory sign asking the LLM about all four](docs/screenshot.png)
 
 ## What it does
 
-Body Lab puts a board of idea bubbles on the screen with your hands drawn over it. Close a fist to pick a bubble up, say an idea to make a new one, point at a bubble to branch from it, and make a victory sign to have Claude suggest two more. Up to two people can talk at once, one microphone each. Speech is transcribed on your Mac; Claude words the ideas.
+Body Lab puts a board of idea bubbles on the screen with your hands drawn over it. Close a fist to pick a bubble up, say an idea to make a new one, point at a bubble to branch from it, and make a victory sign to have the LLM suggest two more. Up to two people can talk at once, one microphone each. Speech is transcribed on your Mac; an LLM words the ideas, hosted or running on your Mac.
 
 | Do this | What happens |
 |---|---|
 | Close a fist on a bubble | Picks it up; open your hand to drop it |
-| Drop a bubble onto another | They merge, and Claude names the combined idea |
+| Drop a bubble onto another | They merge, and the LLM names the combined idea |
 | Fist on empty space, then say an idea | A new idea, held until you open your hand |
 | Point at a bubble, pull away, say an idea | A new branch from that bubble |
-| Victory sign on a bubble | Claude adds two ideas of its own |
+| Victory sign on a bubble | The LLM adds two ideas of its own |
 | Both fists on empty space, pushed together | Zoom out to the overview of the whole canvas |
-| Both hands raised, say how to organise | Claude sorts the bubbles into axes or zones |
+| Both hands raised, say how to organise | The LLM sorts the bubbles into axes or zones |
 | Thumbs up or down on a bubble | Star it or bin it |
 
 Press **?** in the app to see every keyboard shortcut. You can also use the mouse and keyboard in place of your hands.
@@ -28,7 +28,9 @@ Press **?** in the app to see every keyboard shortcut. You can also use the mous
 - A Mac with Apple silicon
 - Chrome, with camera and microphone allowed
 - Node 24 and [uv](https://docs.astral.sh/uv/)
-- A Claude Code login. Claude runs through it by default: with no API key set, the server starts Claude Code sessions on your own Claude login when it launches. An Anthropic API key is optional; add it to `.env` and Natter uses the paid API instead.
+- An LLM, one of:
+  - **Local:** [Ollama](https://ollama.com) with `qwen3:8b` (`ollama pull qwen3:8b`). Put `NATTER_LLM=local` in `.env` and nothing leaves your Mac.
+  - **Hosted:** a Claude Code login (used by default, no key needed) or an Anthropic API key in `.env`. If Ollama is running, its model stands in while the hosted one is slow or down.
 
 ## Run it
 
@@ -46,7 +48,7 @@ More about running and changing it is in [DEVELOPING.md](DEVELOPING.md).
 
 - [MediaPipe](https://ai.google.dev/edge/mediapipe) tasks-vision, with its pose landmarker and gesture recognizer models (Apache-2.0)
 - [Parakeet TDT 0.6B v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) by NVIDIA (CC-BY-4.0), run with [parakeet-mlx](https://github.com/senstella/parakeet-mlx) (Apache-2.0) on [MLX](https://github.com/ml-explore/mlx) (MIT)
-- [Claude](https://www.anthropic.com/claude) through the Claude Agent SDK
+- [Ollama](https://ollama.com) and [Qwen3](https://github.com/QwenLM/Qwen3) for the local model; [Claude](https://www.anthropic.com/claude) through the Claude Agent SDK for the hosted one
 - [Fraunces](https://fonts.google.com/specimen/Fraunces) and [Caveat](https://fonts.google.com/specimen/Caveat) (SIL Open Font License)
 - [Vite](https://vite.dev), [zod](https://zod.dev), [FastAPI](https://fastapi.tiangolo.com) (MIT)
 

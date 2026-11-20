@@ -169,7 +169,7 @@ class Resolver:
 
     def warm_up(self) -> None:
         """Start the Claude Code sessions now, so the first command doesn't wait for them."""
-        if not has_credentials():
+        if not has_credentials() and not ollama.fallback.local_only:
             for session in self._sessions.values():
                 session.start()
 

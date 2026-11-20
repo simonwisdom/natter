@@ -362,3 +362,70 @@ async def test_app_sends_local_status_then_result_or_error_and_traces_backend(
         assert ws.sent[-1]["error"] == "model_failed" and "text" not in ws.sent[-1]
     else:
         assert ws.sent[-1]["text"] == "Seed swap" and ws.sent[-1]["backend"] == "ollama"
+
+
+@pytest.fixture
+def local_only(monkeypatch):
+    monkeypatch.setenv("NATTER_LLM", "local")
+    monkeypatch.delenv("NATTER_OLLAMA_MODEL", raising=False)
+    fallback = ollama.Fallback()
+    monkeypatch.setattr(ollama, "fallback", fallback)
+    return fallback
+
+
+async def test_local_only_never_tries_claude(local_only):
+    async def primary():
+        pytest.fail("Claude was tried in local-only mode")
+
+    async def local():
+        return "local"
+
+    assert await local_only.run(primary, local) == "local"
+    assert local_only.active and local_only.model == "qwen3:8b"
+
+
+async def test_local_only_keeps_a_model_when_standby_is_switched_off(local_only, monkeypatch):
+    monkeypatch.setenv("NATTER_OLLAMA_MODEL", "")
+    assert local_only.model == "qwen3:8b"
+    monkeypatch.setenv("NATTER_OLLAMA_MODEL", "llama3.2")
+    assert local_only.model == "llama3.2"
+
+
+async def test_local_only_failure_is_an_error_not_claude(local_only):
+    async def primary():
+        pytest.fail("Claude was tried in local-only mode")
+
+    async def local():
+        raise ollama.LocalError("down")
+
+    with pytest.raises(ollama.LocalError):
+        await local_only.run(primary, local)
+    assert local_only.local_ready is False
+
+
+async def test_local_only_ideas_and_commands_use_ollama_and_start_no_session(local_only, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+
+    class NoSession:
+        def start(self):
+            pytest.fail("a Claude Code session was started in local-only mode")
+
+        async def ask_text(self, *args):
+            pytest.fail("Claude Code was asked in local-only mode")
+
+    async def chat(system, prompt, max_tokens, schema="json"):
+        if "<tools>" in prompt:
+            return json.dumps({"calls": [{"name": "setColour", "input": {"ids": ["a"], "colour": "red"}}]})
+        return '{"text":"Park","emoji":"🌳"}'
+
+    monkeypatch.setattr(local_only, "chat", chat)
+    reworker = ideas.Reworker(session=NoSession())
+    reworker.warm_up()
+    answer = await reworker.rework("name", heard="a park")
+    assert answer["text"] == "Park" and answer["backend"] == "ollama"
+
+    resolver = Resolver(sessions={FAST_MODEL: NoSession(), STRONG_MODEL: NoSession()})
+    resolver.warm_up()
+    res = await resolver.resolve("make the tiles red", SCENE, ACTIONS)
+    assert res.tier == "local" and res.result["kind"] == "actions"

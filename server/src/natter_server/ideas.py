@@ -253,7 +253,7 @@ class Reworker:
         self._client = None
 
     def warm_up(self) -> None:
-        if not _has_key():
+        if not _has_key() and not ollama.fallback.local_only:
             self._session.start()
 
     async def rework(self, how: str, idea: str = "", other: str = "", heard: str = "", zone: str | None = None, board: list[str] | None = None) -> dict:

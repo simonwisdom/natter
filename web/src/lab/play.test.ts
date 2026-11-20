@@ -452,7 +452,7 @@ describe('Play', () => {
     expect(p.links).toEqual([[a.id, b.id]])
   })
 
-  it('puts out two branches when a victory sign rests on a bubble, and asks Claude once the sign is lowered', () => {
+  it('puts out two branches when a victory sign rests on a bubble, and asks the LLM once the sign is lowered', () => {
     const p = new Play()
     const reqs: PlayRequest[] = []
     p.onRequest = r => reqs.push(r)
@@ -597,7 +597,7 @@ describe('Play', () => {
     expect(ask.board).toHaveLength(n - 2)
     expect(ask.board).not.toContain(b.text)
 
-    // The words arrive, with the angle Claude understood: it stays on the line and behind each new bubble.
+    // The words arrive, with the angle the LLM understood: it stays on the line and behind each new bubble.
     p.setText(made[0].id, 'Both get you outside', '🌤️')
     p.setText(made[1].id, 'No screens', '📵')
     p.setAngle(made.map(v => v.id), 'similarities')
@@ -659,7 +659,7 @@ describe('Play', () => {
       stop(p)
       expect(p.asks.size).toBe(0)
       expect(p.bubbles.filter(v => v.pending)).toHaveLength(0)
-      expect(reqs.at(-1)).toEqual({ kind: 'listenEnd', hand: 1 }) // the microphone is let go, and nothing is sent to Claude
+      expect(reqs.at(-1)).toEqual({ kind: 'listenEnd', hand: 1 }) // the microphone is let go, and nothing is sent to the LLM
       frame(p, 500, hand(1, b.x, b.y, 'palm'))
       frame(p, 900, hand(1, b.x, b.y, 'palm'))
       expect(reqs.filter(r => r.kind === 'suggest')).toHaveLength(0)
@@ -778,7 +778,7 @@ describe('Play', () => {
     expect(cells).toHaveLength(9) // this area and a ring of empty ones
     expect(cells.filter(c => c.current)).toHaveLength(1)
     expect(cells.find(c => c.current)!.bubbles).toHaveLength(first.length)
-    expect(cells.find(c => c.current)!.name).toBe(`${first[0].text} +${first.length - 1}`) // a stand-in until Claude names it
+    expect(cells.find(c => c.current)!.name).toBe(`${first[0].text} +${first.length - 1}`) // a stand-in until the LLM names it
     p.setAreaName('0,0', 'Days off', '🌤️')
     expect(p.cells().find(c => c.current)).toMatchObject({ name: 'Days off', emoji: '🌤️' })
     // Hands move nothing here.
@@ -928,7 +928,7 @@ describe('Play', () => {
     p.setOverview(true)
     expect(p.cells()).toHaveLength(9) // no leftover empty area with a ring of its own
     p.setOverview(false)
-    // An ask on a knot, then away before Claude answers.
+    // An ask on a knot, then away before the LLM answers.
     const [a, b] = p.bubbles
     p.links.push([a.id, b.id])
     for (let t = 1000; t < 1600; t += 33) frame(p, t)
@@ -1076,7 +1076,7 @@ describe('Play', () => {
     expect(p.structuring).toBe(false)
   })
 
-  it('organises the board as Claude says: labels, overlay, bubbles gliding to place, undoable', () => {
+  it('organises the board as the LLM says: labels, overlay, bubbles gliding to place, undoable', () => {
     const p = new Play()
     const [a, b] = p.bubbles
     const before = { x: a.x, y: a.y }

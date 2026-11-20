@@ -1,6 +1,6 @@
 /**
  * The log panel (L, or ?log): the session log as it happens, in plain words, for showing an audience
- * what the lab heard, what it did and how long Claude took. It reads the same events the session log
+ * what the lab heard, what it did and how long the LLM took. It reads the same events the session log
  * writes; hand readings, moves and other frame-by-frame detail are left out.
  */
 
@@ -9,8 +9,8 @@ type Data = Record<string, unknown>
 const str = (v: unknown) => (typeof v === 'string' ? v : '')
 const quote = (v: unknown) => `“${str(v)}”`
 const secs = (ms: unknown) => (typeof ms === 'number' ? ` · ${(ms / 1000).toFixed(1)} s` : '')
-/** Who wrote the words: Claude, unless the local fallback model answered. */
-const writer = (d: Data) => (str(d.backend) === 'ollama' ? 'Local model' : 'Claude')
+/** Who wrote the words: the hosted LLM, unless the local model answered. */
+const writer = (d: Data) => (str(d.backend) === 'ollama' ? 'Local model' : 'LLM')
 
 /** One event as a line for the panel, or nothing if it is not worth an audience's attention. */
 export function feedLine(type: string, d: Data): string | undefined {
@@ -29,9 +29,9 @@ export function feedLine(type: string, d: Data): string | undefined {
       return ideas.length ? `✨ ${writer(d)} → ${ideas.join(' / ')}${secs(d.ms)}` : undefined
     }
     case 'structure': {
-      if (d.kind === 'zones' && Array.isArray(d.zones)) return `✨ Claude → zones: ${d.zones.join(', ')}`
-      if (d.kind === 'axes') return '✨ Claude → two axes'
-      return d.kind === 'clear' ? '✨ Claude → structure cleared' : undefined
+      if (d.kind === 'zones' && Array.isArray(d.zones)) return `✨ LLM → zones: ${d.zones.join(', ')}`
+      if (d.kind === 'axes') return '✨ LLM → two axes'
+      return d.kind === 'clear' ? '✨ LLM → structure cleared' : undefined
     }
     case 'merge': return `✊ Merged ${quote(d.text)} into ${quote(d.into)}`
     case 'connect': return `☝️ Connected ${quote(d.a)} and ${quote(d.b)}`

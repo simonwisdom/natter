@@ -1,6 +1,9 @@
-# Local standby
+# The local model
 
-Natter normally uses Claude. When Claude times out, loses its connection, hits a rate
+With `NATTER_LLM=local` in the project's `.env`, every request goes to the Ollama model
+and no hosted model is started. Local requests then have an 11-second limit.
+
+Otherwise Natter uses a hosted model (Claude) and keeps the local one as standby. When Claude times out, loses its connection, hits a rate
 limit or returns a server error, Natter tries the installed Ollama model at
 `127.0.0.1:11434`. The default is `qwen3:8b`; set `NATTER_OLLAMA_MODEL` in the project's
 `.env` to choose another installed model, or set it to an empty value to disable

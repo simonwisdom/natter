@@ -4,9 +4,9 @@ import { clock, rowAt, spanAt, spans, toRow, toRows, type LogEvent } from './row
 const ev = (t: number, type: string, more: Record<string, unknown> = {}): LogEvent => ({ t, type, ...more })
 
 describe('replay rows', () => {
-  it('puts what was heard, what Claude wrote and what was done in plain words', () => {
+  it('puts what was heard, what the LLM wrote and what was done in plain words', () => {
     expect(toRow(ev(1, 'final', { text: 'cat' }))).toMatchObject({ text: '🎙️ Heard “cat”', kind: 'heard', moment: true })
-    expect(toRow(ev(2, 'idea', { text: 'Cat', emoji: '🐱', ms: 974 }))).toMatchObject({ text: '✨ Claude → 🐱 Cat · 1.0 s', kind: 'claude' })
+    expect(toRow(ev(2, 'idea', { text: 'Cat', emoji: '🐱', ms: 974 }))).toMatchObject({ text: '✨ LLM → 🐱 Cat · 1.0 s', kind: 'claude' })
     expect(toRow(ev(3, 'merge', { text: 'a', into: 'b' }))).toMatchObject({ kind: 'did', moment: true })
   })
 

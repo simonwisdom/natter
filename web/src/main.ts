@@ -174,8 +174,8 @@ function handleResult(result: ResolverResult, personId: string, text: string, tu
       const messages: Record<string, string> = {
         no_api_key: 'No Anthropic API key. Add ANTHROPIC_API_KEY to .env and restart. Simple commands like “undo” still work.',
         stt_not_ready: 'The speech model is still loading. Try again in a moment.',
-        timeout: 'Claude took too long to answer. Try again?',
-        model_failed: 'Claude couldn’t turn that into an action. Try rephrasing?',
+        timeout: 'The LLM took too long to answer. Try again?',
+        model_failed: 'The LLM couldn’t turn that into an action. Try rephrasing?',
         invalid_calls: 'I couldn’t work out a valid change for that. Try rephrasing?',
       }
       hud.toast(messages[result.reason] ?? `Something went wrong: ${result.reason}`, 'warn', 6000)
@@ -196,7 +196,7 @@ function renderHealth() {
   hud.health([
     { label: health.server ? 'server' : 'server offline', ok: health.server },
     { label: health.stt === 'ready' ? 'speech' : health.stt === 'failed' ? 'speech failed' : 'speech loading…', ok: !health.server ? false : health.stt === 'ready' ? true : health.stt === 'failed' ? false : null },
-    { label: health.llm === 'ollama' ? 'Local model (Ollama)' : health.llm === 'ollama_loading' ? 'Starting local model' : health.llm === 'ollama_failed' ? 'Local model unavailable' : health.llm === 'no_api_key' ? 'Claude: no API key' : health.llm === 'claude_code' ? 'Claude (via Claude Code)' : 'Claude', ok: health.llm === 'ready' || health.llm === 'claude_code' || health.llm === 'ollama' },
+    { label: health.llm === 'ollama' ? 'Local model (Ollama)' : health.llm === 'ollama_loading' ? 'Starting local model' : health.llm === 'ollama_failed' ? 'Local model unavailable' : health.llm === 'no_api_key' ? 'Hosted LLM: no API key' : health.llm === 'claude_code' ? 'Hosted LLM (Claude Code login)' : 'Hosted LLM', ok: health.llm === 'ready' || health.llm === 'claude_code' || health.llm === 'ollama' },
     { label: `camera ${health.camera}`, ok: health.camera === 'on' ? true : health.camera === 'off' ? null : false },
     { label: `mic ${health.mic}`, ok: health.mic === 'on' ? true : health.mic === 'off' ? null : false },
   ])

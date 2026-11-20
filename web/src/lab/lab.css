@@ -43,7 +43,7 @@ body.overview #rail { opacity: 0; pointer-events: none; }
 .bubble .label { font-size: 2.9em; font-weight: 600; line-height: 1.08; overflow-wrap: anywhere; }
 .bubble .star { position: absolute; top: -0.25em; right: -0.06em; font-size: 8em; color: #ffd23f; text-shadow: 0 0.05em 0.12em rgba(0, 0, 0, 0.5); opacity: 0; transform: scale(0.2) rotate(-40deg); transition: all 0.35s cubic-bezier(0.3, 1.8, 0.5, 1); }
 .bubble.starred .star { opacity: 1; transform: none; }
-/* Claude's own ideas: a dashed rim and a spark. */
+/* The LLM's own ideas: a dashed rim and a spark. */
 .bubble .spark { display: none; position: absolute; top: 0.1em; left: 0.3em; font-size: 4em; }
 .bubble.claude { outline: 0.5em dashed #fff4dc; outline-offset: -0.5em; }
 .bubble.claude .spark { display: block; }

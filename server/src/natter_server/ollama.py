@@ -1,4 +1,5 @@
-"""Bounded, local-only standby for Claude. Never pulls a model or uses a cloud route."""
+"""The local model through Ollama: a bounded standby for Claude, or the only model with
+NATTER_LLM=local. Never pulls a model or uses a cloud route."""
 
 import asyncio
 import json
@@ -19,6 +20,9 @@ log = logging.getLogger("natter.ollama")
 T = TypeVar("T")
 PRIMARY_TIMEOUT = 4
 LOCAL_TIMEOUT = 7
+# With no hosted model tried first, the local model gets most of the lab's 12-second wait.
+LOCAL_ONLY_TIMEOUT = 11
+DEFAULT_MODEL = "qwen3:8b"
 
 
 class LocalError(Exception):
@@ -47,17 +51,24 @@ class Fallback:
         self._local_lock = asyncio.Lock()
 
     @property
+    def local_only(self) -> bool:
+        """NATTER_LLM=local: every request goes to the local model and Claude is never started."""
+        return os.environ.get("NATTER_LLM", "").strip().lower() == "local"
+
+    @property
     def model(self) -> str:
-        # Empty disables standby. The 8B model passed the local idea-generation trial.
-        return os.environ.get("NATTER_OLLAMA_MODEL", "qwen3:8b")
+        # Empty disables standby (not local-only mode). The 8B model passed the local idea-generation trial.
+        return os.environ.get("NATTER_OLLAMA_MODEL", DEFAULT_MODEL) or (DEFAULT_MODEL if self.local_only else "")
 
     @property
     def active(self) -> bool:
-        return bool(self.model) and time.monotonic() < self.retry_at
+        return self.local_only or (bool(self.model) and time.monotonic() < self.retry_at)
 
     async def run(
         self, primary: Callable[[], Awaitable[T]], local: Callable[[], Awaitable[T]]
     ) -> T:
+        if self.local_only:
+            return await self._local(local)
         if not self.model:
             return await primary()
         if self.active or self._probe:
@@ -104,7 +115,8 @@ class Fallback:
     ) -> str:
         try:
             # Includes queue time: concurrent gestures cannot build an unbounded inference queue.
-            async with asyncio.timeout(LOCAL_TIMEOUT):
+            limit = LOCAL_ONLY_TIMEOUT if self.local_only else LOCAL_TIMEOUT
+            async with asyncio.timeout(limit):
                 async with self._local_lock:
                     async with httpx.AsyncClient(trust_env=False) as client:
                         response = await client.post(
@@ -125,7 +137,7 @@ class Fallback:
                                     "num_ctx": 8192,
                                 },
                             },
-                            timeout=10,
+                            timeout=limit + 1,
                         )
                         response.raise_for_status()
                         data = response.json()

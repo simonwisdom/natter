@@ -83,7 +83,9 @@ def status() -> dict:
     refresh_env()
     llm = "ready" if has_credentials() else "claude_code"
     if ollama.fallback.active:
-        llm = "ollama" if ollama.fallback.local_ready else "ollama_failed" if ollama.fallback.local_ready is False else "ollama_loading"
+        ready = ollama.fallback.local_ready
+        # Local-only has nothing to switch from, so "starting" would only mean "not asked yet".
+        llm = "ollama_failed" if ready is False else "ollama" if ready or ollama.fallback.local_only else "ollama_loading"
     return {"type": "status", "stt": stt_state["stt"], "llm": llm}
 
 

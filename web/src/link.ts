@@ -7,8 +7,8 @@ export type ServerMessage =
   | { type: 'result'; turnId: string; text: string; result: ResolverResult; tier: string; timings: Record<string, number> }
   /** Body Lab: words for a bubble. `id` is the rework id, or the turnId of a spoken idea. */
   | { type: 'idea'; id: string; text?: string; emoji?: string; error?: string; ms?: number }
-  /** Body Lab: Claude's own ideas for the bubbles asked for under `id`. */
-  | { type: 'ideas'; id: string; ideas?: { text: string; emoji: string }[]; /** The spoken angle as Claude understood it, if there was one. */ angle?: string; error?: string; ms?: number }
+  /** Body Lab: the LLM's own ideas for the bubbles asked for under `id`. */
+  | { type: 'ideas'; id: string; ideas?: { text: string; emoji: string }[]; /** The spoken angle as the LLM understood it, if there was one. */ angle?: string; error?: string; ms?: number }
   /** Body Lab: how to organise the board; `id` is the turnId of the spoken request. The rest is a Structure. */
   | { type: 'structure'; id: string; kind?: string; error?: string; ms?: number; [key: string]: unknown }
 

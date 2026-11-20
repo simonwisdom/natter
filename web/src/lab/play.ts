@@ -11,7 +11,7 @@
  * Point at a bubble     rest a fingertip on it for a moment, then pull a branch out (say it);
  *                       open the hand to plant it, or open it back over the bubble to cancel
  * Point, land on another bubble   open the hand there to connect the two (again to disconnect)
- * Victory sign on a bubble        ask Claude for two more ideas branching from it. Say an angle while
+ * Victory sign on a bubble        ask the LLM for two more ideas branching from it. Say an angle while
  *                                 holding the sign ("risks", "cheaper") and both ideas answer it; lower the sign to send
  * Victory sign on a knot          every connection has a knot at its middle. The same sign there asks for two ideas
  *                                 from the pair ("similarities", "differences"); they hang off the knot, and the angle stays on the line
@@ -22,7 +22,7 @@
  * Stretch a bubble large          it opens to show everything that was said
  *
  * Two fists on empty space        push them together to zoom out to the overview: the canvas is a grid of screen-sized
- *                                 areas, each shown small with a name from Claude. There, rest a pointing finger on an
+ *                                 areas, each shown small with a name from the LLM. There, rest a pointing finger on an
  *                                 area (or pull two fists apart over it) to go in. An empty area is fresh space.
  *
  * Overlays: axes and zones are drawn over the same bubbles. With zones on, a flung bubble
@@ -62,7 +62,7 @@ const BURN_STILL = 0.6 // board widths a second: a hand moving faster than this 
 export const DELETE_IDLE_MS = 20_000 // delete mode switches itself off when nothing has been binned for this long
 export const POINT_DWELL_MS = 400// a fingertip must rest on a bubble this long to start a branch
 export const HUB_MIN = 2 // a bubble with this many connections is a hub: an ask on it is about all of them together
-export const ASK_DWELL_MS = 400 // a victory sign must rest on a bubble this long to ask Claude
+export const ASK_DWELL_MS = 400 // a victory sign must rest on a bubble this long to ask the LLM
 const ASK_GRACE_MS = 250 // the sign may drop out this long without ending the ask (a misread frame mustn't cut the speaker off)
 export const ASK_MAX_MS = 8000 // an ask sends itself after this long, so a sign left up doesn't hold the microphone
 export const KNOT_DRAWN = 0.3 // a connection's knot as drawn, as a share of R
@@ -92,7 +92,7 @@ export type PlayRequest =
   /** A victory sign settled on a bubble or a knot: listen for an angle until the `suggest` from the same hand. */
   | { kind: 'askStart'; hand: number }
   /**
-   * `bubbleIds` are new branches of `idea` that need Claude's own suggestions. With `other`, they hang off the
+   * `bubbleIds` are new branches of `idea` that need the LLM's own suggestions. With `other`, they hang off the
    * knot between the two and come from the pair. `hand` is whose sign it was, if it could be saying an angle.
    */
   | { kind: 'suggest'; bubbleIds: string[]; idea: string; other?: string; /** A hub's connected ideas: the new ones come from all of them together. */ linked?: string[]; hand?: number; branches: string[]; board: string[]; zone?: string }
@@ -103,7 +103,7 @@ export type PlayRequest =
   /** The area `key` is being shown in the overview and its ideas have changed: it needs a name. */
   | { kind: 'area'; key: string; labels: string[] }
 
-/** How Claude says the board should be organised (see applyStructure). */
+/** How the LLM says the board should be organised (see applyStructure). */
 export type Structure =
   | { kind: 'axes'; x: [string, string]; y: [string, string]; place: { id: string; x: number; y: number }[] }
   | { kind: 'zones'; zones: string[]; place: { id: string; zone: number }[] }
@@ -132,7 +132,7 @@ export interface Bubble {
   full?: string
   /** Stretched open on purpose (two fists or the wheel) to show `full`. Growing from merges never opens it. */
   opened?: boolean
-  /** Claude's own idea, not something a person said. */
+  /** The LLM's own idea, not something a person said. */
   byClaude?: boolean
   /** Where it is gliding to after the board was organised. */
   goal?: { x: number; y: number }
@@ -225,7 +225,7 @@ export interface PlayInput {
   raised?: boolean
 }
 
-// Example ideas for trying things out (R). An everyday subject on purpose: Claude reads the
+// Example ideas for trying things out (R). An everyday subject on purpose: the LLM reads the
 // board when it suggests and combines, and takes its tone from what is there.
 const SEED: [string, string][] = [
   ['Sleep in', '😴'],
@@ -266,7 +266,7 @@ export class Play {
   heard = new Set<number>()
   /** Fingertips resting on a bubble and counting down to a branch or a question. */
   aims = new Map<number, Aim>()
-  /** Victory signs still held after asking Claude, by hand: listening for an angle until the sign is lowered. */
+  /** Victory signs still held after asking the LLM, by hand: listening for an angle until the sign is lowered. */
   asks = new Map<number, Ask>()
   /** How many microphones there are: with two, each person can be saying an idea at the same time. */
   voices = 1
@@ -274,7 +274,7 @@ export class Play {
   links: [string, string][] = []
   /** The angle last asked through on a connection, shown on its line. */
   private linkWords = new Map<string, string>()
-  /** The words on the axes and zones overlays; Claude rewrites them when the board is organised by voice. */
+  /** The words on the axes and zones overlays; the LLM rewrites them when the board is organised by voice. */
   labels = { x: ['easy', 'hard'], y: ['small win', 'big win'], zones: ['Keep', 'Try', 'Drop'] }
   /** Both hands are up and the board is listening for how to organise itself. */
   structuring = false
@@ -614,9 +614,9 @@ export class Play {
     const of = labels.join('|'), named = this.names.get(this.here)
     if (!labels.length) this.names.delete(this.here)
     else if (named?.of !== of) {
-      // Until Claude answers (or if it never does): the old name, or the first idea and how many more.
+      // Until the LLM answers (or if it never does): the old name, or the first idea and how many more.
       this.names.set(this.here, { text: named?.text ?? (labels.length > 1 ? `${labels[0]} +${labels.length - 1}` : labels[0]), emoji: named?.emoji ?? '', of })
-      // One idea names its own area; more than one is Claude's to sum up.
+      // One idea names its own area; more than one is the LLM's to sum up.
       if (labels.length > 1) this.onRequest?.({ kind: 'area', key: this.here, labels: labels.slice(0, 30) })
       else this.names.set(this.here, { text: labels[0], emoji: '', of })
     }
@@ -971,7 +971,7 @@ export class Play {
       this.release(h.id, st, h, t)
     } else if (aiming) {
       // A fingertip that comes to rest on a bubble, however it got there: one finger starts a
-      // branch, two fingers ask Claude for more.
+      // branch, two fingers ask the LLM for more.
       const kind = h.gesture === 'point' ? 'branch' : 'ask'
       const on = this.bubbleAt(h.tipX, h.tipY)
       // Two fingers on a connection's knot ask about the pair.
@@ -1196,7 +1196,7 @@ export class Play {
 
   /**
    * A victory sign settled on `b`, or on the knot between `b` and `other`: put out the new bubbles
-   * and start listening for an angle. The ask goes to Claude when the sign is lowered (endAsk).
+   * and start listening for an angle. The ask goes to the LLM when the sign is lowered (endAsk).
    */
   private startAsk(hand: number, b: Bubble, other: Bubble | undefined, t: number) {
     this.checkpoint()
@@ -1245,14 +1245,14 @@ export class Play {
     for (const hand of [...this.asks.keys()]) this.endAsk(hand, this.lastT ?? 0, true)
   }
 
-  /** Claude said which angle it answered for these new bubbles: keep it behind each, and on the line if they hang off a knot. */
+  /** The LLM said which angle it answered for these new bubbles: keep it behind each, and on the line if they hang off a knot. */
   setAngle(bubbleIds: string[], angle: string) {
     const word = angle.trim()
     if (!word) return
     for (const id of bubbleIds) {
       const b = this.find(id)
       if (!b) continue
-      // Its area may have been left while Claude was answering.
+      // Its area may have been left while the LLM was answering.
       const kept = this.byId(id) ? undefined : [...this.areas.values()].find(a => a.bubbles.includes(b))
       const from = b.knot ? b.knot.map(k => this.find(k)?.text).filter(Boolean).join(' + ') : this.find(b.parent)?.text
       if (from) b.full = `${word}: ${from}`
@@ -1264,7 +1264,7 @@ export class Play {
   }
 
   /**
-   * Organise the board the way Claude read the spoken request: label the axes or zones,
+   * Organise the board the way the LLM read the spoken request: label the axes or zones,
    * turn that overlay on, and send each bubble gliding to its place. Undoable.
    */
   applyStructure(s: Structure) {

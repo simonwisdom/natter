@@ -5,7 +5,7 @@
  * Keys: O = zoom out to the overview of the whole canvas and back, H = show/hide the hints beside each hand, B = the outlines drawn from the camera: body and hands, hands only, body only, neither (also ?outlines=both|hands|body|none; remembered), A = axes, Z = zones, W = workbench, S = start/stop listening for how to organise the board, U = undo, C = clear the board, R = reset to the starting bubbles,
  *       ? = show/hide the list of these keys, N = which kind the microphones are (auto, handheld, clip-on; also ?handheld and ?clipon; remembered),
  *       D = show/hide readouts,
- *       L = show/hide the log panel (also ?log; remembered): what was heard, what was done and how long Claude took, as it happens,
+ *       L = show/hide the log panel (also ?log; remembered): what was heard, what was done and how long the LLM took, as it happens,
  *       P = stage mode for an audience (also ?stage): hides the test-bench text; what a hand is doing shows small beside it, and goes up in one large band once it is done,
  *       Y = tidy: lay each connected group out round its busiest bubble, without changing any words (also on the side rail, and "tidy up" said with both hands raised),
  *       M = show/hide the camera picture behind the board (also ?camera; remembered),
@@ -16,7 +16,7 @@
  *       V = stop/start recording. Each session's camera picture is recorded to lab-recordings/ on this computer (compressed), for replaying against tracking changes,
  *           and each microphone's sound beside it, for writing out everything that was said afterwards (uv run natter-transcript, in server/).
  * Each session is logged to lab-sessions/ by the local server (see log.ts).
- * Speech and Claude come from the local server; without it, ideas get placeholder words.
+ * Speech and the LLM come from the local server; without it, ideas get placeholder words.
  * The mouse does everything hands do, as a backup (see mouse.ts): drag, press and hold on empty space, right-drag, Alt-press, wheel to resize.
  * Add ?fake to the address to run without a camera and feed frames with lab.inject(frame).
  * Add ?off=steady,loose,zoom to switch tracking fixes off (see fixes.ts), and ?replay=<video address>
@@ -177,7 +177,7 @@ function checkLight(t: number) {
   say('The picture is dark, so moving hands blur. More light on you will help.')
 }
 
-// ---------- words: speech and Claude, through the local server ----------
+// ---------- words: speech and the LLM, through the local server ----------
 
 const params = new URLSearchParams(location.search)
 // Which kind the microphones are (N steps through; ?handheld or ?clipon; remembered). Auto takes two microphones, or one input of
@@ -346,12 +346,12 @@ function onRequest(req: PlayRequest) {
     const send = (angle: string) => {
       settle(ids[0])
       if (!ids.some(id => play.find(id)?.pending)) return // given up on, or undone, while the words were on their way
-      // Claude gets the whole wait from here; hearing the angle has its own.
+      // The LLM gets the whole wait from here; hearing the angle has its own.
       if (link?.send({ type: 'suggest', id: ids.join(','), idea: req.idea, other: req.other, linked: req.linked, angle: angle || undefined, branches: req.branches, board: req.board, zone: req.zone })) return wait(ids[0], unanswered)
       giveUp()
-      say('Claude isn’t connected')
+      say('The LLM isn’t connected')
     }
-    const unanswered = () => { giveUp(); say('Claude didn’t answer') }
+    const unanswered = () => { giveUp(); say('The LLM didn’t answer') }
     const voice = req.hand !== undefined ? turnOf(req.hand) : -1
     const mine = turns[voice]?.id.startsWith('angle-') ? turns[voice] : undefined
     if (!mine) return send('') // nothing was listening: ask without an angle
@@ -372,7 +372,7 @@ function onRequest(req: PlayRequest) {
     closeTurn(voice, { mode: 'structure', cancelled: false, board })
     if (organising) organising.thinking = true
     clearTimeout(organiseTimer)
-    organiseTimer = window.setTimeout(() => { if (organising) { organising = undefined; say('Claude didn’t answer') } }, WAIT_MS)
+    organiseTimer = window.setTimeout(() => { if (organising) { organising = undefined; say('The LLM didn’t answer') } }, WAIT_MS)
   }
 }
 
@@ -423,7 +423,7 @@ function onServer(msg: ServerMessage) {
     if (msg.turnId.startsWith('board-')) {
       if (!organising) return
       organising.heard = msg.text
-      // "Tidy up" needs no thought: lay the board out now, and let Claude's answer for this turn pass.
+      // "Tidy up" needs no thought: lay the board out now, and let the LLM's answer for this turn pass.
       if (TIDY_WORDS.test(msg.text)) { tidied.add(msg.turnId); organising = undefined; clearTimeout(organiseTimer); return tidy() }
       if (!msg.text.trim()) { organising = undefined; clearTimeout(organiseTimer); say(msg.skipped ? `Skipped “${msg.skipped}”` : 'Didn’t catch that') }
       return
@@ -438,7 +438,7 @@ function onServer(msg: ServerMessage) {
     }
     else {
       b.full = msg.text // kept behind the label: stretch the bubble to read it
-      b.text = msg.text.length > 44 ? `${msg.text.slice(0, 42)}…` : msg.text // shown until Claude names it
+      b.text = msg.text.length > 44 ? `${msg.text.slice(0, 42)}…` : msg.text // shown until the LLM names it
     }
   } else if (msg.type === 'idea' && msg.id.startsWith('area:')) {
     if (msg.text) play.setAreaName(msg.id.slice(5), msg.text, msg.emoji)
@@ -457,12 +457,12 @@ function onServer(msg: ServerMessage) {
       else play.remove(id)
     })
     if (msg.angle) play.setAngle(ids, msg.angle)
-    if (!msg.ideas?.length) say('Claude didn’t answer')
+    if (!msg.ideas?.length) say('The LLM didn’t answer')
   } else if (msg.type === 'structure') {
     if (tidied.delete(msg.id)) return
     clearTimeout(organiseTimer)
     organising = undefined
-    if (msg.error || !msg.kind) return say('Claude couldn’t organise that')
+    if (msg.error || !msg.kind) return say('The LLM couldn’t organise that')
     if (msg.kind === 'none') return say('That didn’t sound like a way to organise the board')
     play.applyStructure(msg as unknown as Structure)
   } else if (msg.type === 'result') {
@@ -525,7 +525,7 @@ function tidy() {
   if (play.overview) return say('Go into an area first')
   say(play.tidy() ? '✨ Tidied (Undo brings it back)' : play.bubbles.length ? 'Finish drawing zones first, or clear them: tidy works without zones' : 'Nothing to tidy')
 }
-/** Words that mean "just tidy", not a way of organising for Claude to work out. */
+/** Words that mean "just tidy", not a way of organising for the LLM to work out. */
 const TIDY_WORDS = /^\W*(please\s+)?(tidy|tidy (it|this|that|things|everything) up|tidy up|tidy up (the board|everything|this|it)|tidy the board|clean (it |this |that )?up|neaten( it| this)?( up)?|space (them|it|things) out|spread (them|it|things) out)\W*$/i
 const tidied = new Set<string>()
 
@@ -663,7 +663,7 @@ function render() {
     : m.workbench
     ? 'Workbench: hold a bubble, then with your other fist   pull apart = take it further   push together = simplest version   cross over = the opposite'
     // The short version: the words beside each hand say what it can do where it is, and the README has the rest.
-    : '✊ on a bubble: move it, drop on another to merge   ✊ on empty space: say a new idea   ☝️ on a bubble: pull out a branch, or connect to another   ✌️ ask Claude, and say an angle   ✊✊ resize, or zoom out on empty space   🙌 say how to organise   👍 star   👎 bin'
+    : '✊ on a bubble: move it, drop on another to merge   ✊ on empty space: say a new idea   ☝️ on a bubble: pull out a branch, or connect to another   ✌️ ask for more, and say an angle   ✊✊ resize, or zoom out on empty space   🙌 say how to organise   👍 star   👎 bin'
 
   drawUnder(W, H)
   drawOver(W, H)
@@ -900,7 +900,7 @@ function drawUnder(W: number, H: number) {
     c.lineTo(b.x * W, b.y * H)
     c.stroke()
   }
-  // Each connection has a knot at its middle to ask Claude about the pair, and the angle last asked sits under it.
+  // Each connection has a knot at its middle to ask the LLM about the pair, and the angle last asked sits under it.
   for (const [a, b] of play.links) {
     const p = play.byId(a), q = play.byId(b)
     if (!p || !q || p.leaving || q.leaving) continue
@@ -977,8 +977,8 @@ function handHint(h: Hand): string[] {
   if (aim?.kind === 'idea') return ['keep closed: new idea']
   const tip = h.gesture === 'point' || h.gesture === 'victory'
   const over = play.bubbleAt(tip ? h.tipX : h.x, tip ? h.tipY : h.y)
-  if (over) return over.pending ? [] : ['✊ move', '☝️ branch', play.hub(over).length ? `✌️ ask about all ${play.hub(over).length + 1} together` : '✌️ ask Claude', '👍 👎']
-  if (play.knotAt(tip ? h.tipX : h.x, tip ? h.tipY : h.y)) return ['✌️ ask Claude about this pair']
+  if (over) return over.pending ? [] : ['✊ move', '☝️ branch', play.hub(over).length ? `✌️ ask about all ${play.hub(over).length + 1} together` : '✌️ ask for more', '👍 👎']
+  if (play.knotAt(tip ? h.tipX : h.x, tip ? h.tipY : h.y)) return ['✌️ ask about this pair']
   return ['✊ new idea']
 }
 
@@ -997,8 +997,8 @@ function mouseHint(h: Hand): string[] {
   if (play.ideas.has(h.id) || play.asks.has(h.id)) return []
   if (play.aims.get(h.id)?.kind === 'idea') return ['keep holding: new idea']
   const over = play.bubbleAt(h.x, h.y)
-  if (over) return over.pending ? [] : ['drag: move', 'right-drag: branch', 'Alt-press: ask Claude', 'wheel: resize', 'T star · ⌫ bin']
-  if (play.knotAt(h.x, h.y)) return ['Alt-press: ask Claude about this pair']
+  if (over) return over.pending ? [] : ['drag: move', 'right-drag: branch', 'Alt-press: ask for more', 'wheel: resize', 'T star · ⌫ bin']
+  if (play.knotAt(h.x, h.y)) return ['Alt-press: ask about this pair']
   return ['press and hold: new idea']
 }
 
@@ -1311,7 +1311,7 @@ function renderStage() {
     stageEl.classList.toggle('long', n > 60 && n <= 160)
     stageEl.classList.toggle('longer', n > 160)
   }
-  const problem = fake ? 'Practice: no camera, speech or Claude' : !link?.connected ? 'Server off' : stt !== 'ready' ? `Speech ${stt}` : llm === 'off' || llm.endsWith('failed') ? 'Claude off' : !mics[0].started ? 'No microphone' : sense.fps < 5 ? 'No camera picture' : ''
+  const problem = fake ? 'Practice: no camera, speech or LLM' : !link?.connected ? 'Server off' : stt !== 'ready' ? `Speech ${stt}` : llm === 'off' || llm.endsWith('failed') ? 'LLM off' : !mics[0].started ? 'No microphone' : sense.fps < 5 ? 'No camera picture' : ''
   healthEl.classList.toggle('bad', !!problem)
   const text = problem || 'Ready'
   if (healthEl.lastElementChild!.textContent !== text) healthEl.lastElementChild!.textContent = text
