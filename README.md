@@ -4,7 +4,15 @@
 
 Brainstorm with your hands and your voice. People stand in front of a screen of idea bubbles; the camera reads their hands and body, and what they say becomes ideas on the board.
 
-![Natter: idea bubbles joined round a hub, with a victory sign asking the LLM about all four](docs/screenshot.png)
+![Natter on stage: a victory sign on the "Speech to text" bubble, and the LLM adds two ideas](docs/demo.gif)
+
+Shown at AI Tinkerers London in November 2026. The [write-up](https://simonwisdom.com/posts/natter/) has more clips from the demo.
+
+## Why
+
+Most of the time we use computers hunched over a small screen, typing. When people talk in a room they move, point and gesture, and most of that is lost at a keyboard. Natter is a prototype for working with your whole body: the feel of brainstorming at a whiteboard together, with what an LLM can add.
+
+It is built to be fast. Waiting even ten seconds breaks the flow of an idea, so it uses small models running on the Mac where it can: hand tracking in the browser and speech to text on device.
 
 ## What it does
 
@@ -22,6 +30,14 @@ Body Lab puts a board of idea bubbles on the screen with your hands drawn over i
 | Thumbs up or down on a bubble | Star it or bin it |
 
 Press **?** in the app to see every keyboard shortcut. You can also use the mouse and keyboard in place of your hands.
+
+## Still rough
+
+- Saying how to organise the board (both hands raised) doesn't always start.
+- Two people at once (four hands, two microphones) is the least reliable part.
+- Hands can block the screen, and a gesture can be read as one you didn't mean.
+
+Ideas for later: brainstorming together from different rooms, more than one camera, and glasses in place of a big screen.
 
 ## What you need
 
